@@ -181,8 +181,6 @@ static const char *move(const struct sgf_cb *cbs, const char *sgf)
 
 static const char *add(const struct sgf_cb *cbs, const char *sgf)
 {
-	if(!cbs->ab || !cbs->aw || !cbs->ae)
-		return sgf;
 	//printf("%s:%s\n",__FUNCTION__,sgf);
 	const char *start = sgf;
 	char color;
@@ -207,9 +205,9 @@ static const char *add(const struct sgf_cb *cbs, const char *sgf)
 			return start;
 		if(*sgf != ']')
 			return start;
-		if(color=='B') cbs->ab(a,b);
-		else if(color=='W') cbs->aw(a,b);
-		else if(color=='E') cbs->ae(a,b);
+		if(color=='B' && cbs->ab) cbs->ab(a,b);
+		else if(color=='W' && cbs->aw) cbs->aw(a,b);
+		else if(color=='E' && cbs->ae) cbs->ae(a,b);
 		++sgf;
 		sgf = whitespace(sgf);
 	}
