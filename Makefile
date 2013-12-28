@@ -18,6 +18,7 @@ all: $(OBJS)
 
 install: ${TARGET}
 	sudo cp ${TARGET} /usr/local/lib	
+	sudo cp sgf.h /usr/local/include	
 
 clean:
 	rm -f ${OBJS} 2> /dev/null
