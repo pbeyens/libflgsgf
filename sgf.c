@@ -16,8 +16,6 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <stdio.h>
 #include <assert.h>
 
-static const struct sgf_cb *cb = 0;
-
 static int is_lcletter(const char *sgf)
 {
 	if(*sgf>='a' && *sgf<='z')
@@ -124,9 +122,9 @@ static const char *whitespace(const char *sgf)
 	return sgf;
 }
 
-static const char *sz(const char *sgf)
+static const char *sz(const struct sgf_cb *cbs, const char *sgf)
 {
-	if(!cb->sz)
+	if(!cbs->sz)
 		return sgf;
 	//printf("%s:%s\n",__FUNCTION__,sgf);
 	const char *start = sgf;
@@ -143,13 +141,13 @@ static const char *sz(const char *sgf)
 	if(*sgf != ']')
 		return start;
 	++sgf;
-	cb->sz(19);
+	cbs->sz(19);
 	return sgf;
 }
 
-static const char *move(const char *sgf)
+static const char *move(const struct sgf_cb *cbs, const char *sgf)
 {
-	if(!cb->b || !cb->w)
+	if(!cbs->b || !cbs->w)
 		return sgf;
 	//printf("%s:%s\n",__FUNCTION__,sgf);
 	const char *start = sgf;
@@ -176,14 +174,14 @@ static const char *move(const char *sgf)
 
 	if(*sgf != ']')
 		return start;
-	(color=='B') ? cb->b(a,b) : cb->w(a,b);
+	(color=='B') ? cbs->b(a,b) : cbs->w(a,b);
 	++sgf;
 	return sgf;
 }
 
-static const char *add(const char *sgf)
+static const char *add(const struct sgf_cb *cbs, const char *sgf)
 {
-	if(!cb->ab || !cb->aw || !cb->ae)
+	if(!cbs->ab || !cbs->aw || !cbs->ae)
 		return sgf;
 	//printf("%s:%s\n",__FUNCTION__,sgf);
 	const char *start = sgf;
@@ -209,18 +207,18 @@ static const char *add(const char *sgf)
 			return start;
 		if(*sgf != ']')
 			return start;
-		if(color=='B') cb->ab(a,b);
-		else if(color=='W') cb->aw(a,b);
-		else if(color=='E') cb->ae(a,b);
+		if(color=='B') cbs->ab(a,b);
+		else if(color=='W') cbs->aw(a,b);
+		else if(color=='E') cbs->ae(a,b);
 		++sgf;
 		sgf = whitespace(sgf);
 	}
 	return sgf;
 }
 
-static const char *cr(const char *sgf)
+static const char *cr(const struct sgf_cb *cbs, const char *sgf)
 {
-	if(!cb->cr)
+	if(!cbs->cr)
 		return sgf;
 	//printf("%s:%s\n",__FUNCTION__,sgf);
 	char a, b;
@@ -240,15 +238,15 @@ static const char *cr(const char *sgf)
 		return start;
 	if(*sgf != ']')
 		return start;
-	cb->cr(a,b);
+	cbs->cr(a,b);
 	++sgf;
 	return sgf;
 }
 
-static const char *key(const char *sgf)
+static const char *key(const struct sgf_cb *cbs, const char *sgf)
 {
 	char k;
-	if(!cb->key)
+	if(!cbs->key)
 		return sgf;
 	//printf("%s:%s\n",__FUNCTION__,sgf);
 	const char *start = sgf;
@@ -266,11 +264,11 @@ static const char *key(const char *sgf)
 	if(*sgf != ']')
 		return start;
 	++sgf;
-	cb->key(k);
+	cbs->key(k);
 	return sgf;
 }
 
-static const char *unknown(const char *sgf)
+static const char *unknown(const struct sgf_cb *cbs, const char *sgf)
 {
 	//printf("%s:%s\n",__FUNCTION__,sgf);
 	const char *start = sgf, *tmp;
@@ -285,49 +283,44 @@ static const char *unknown(const char *sgf)
 	if(sgf == tmp)
 		return start;
 	
-	cb->prop_unknown(start,sgf-start);
+	if(cbs->prop_unknown)
+		cbs->prop_unknown(start,sgf-start);
 
 	return sgf;
 }
 
-static const char *node(const char *sgf)
+static const char *node(const struct sgf_cb *cbs, const char *sgf)
 {
 	//printf("%s:%s\n",__FUNCTION__,sgf);
 	if(*sgf != ';')
 		return sgf;
-	if(cb->node_new) cb->node_new();
+	if(cbs->node_new) cbs->node_new();
 	return ++sgf;
 }
 
-static const char *property(const char *sgf)
+static const char *property(const struct sgf_cb *cbs, const char *sgf)
 {
 	//printf("%s:%s\n\n",__FUNCTION__,sgf);
 	const char *start = sgf;
-	sgf = node(sgf);
-	if(sgf==start) sgf = sz(sgf);
-	if(sgf==start) sgf = move(sgf);
-	if(sgf==start) sgf = add(sgf);
-	if(sgf==start) sgf = cr(sgf);
-	if(sgf==start) sgf = key(sgf);
-	if(sgf==start) sgf = unknown(sgf);
+	sgf = node(cbs,sgf);
+	if(sgf==start) sgf = sz(cbs,sgf);
+	if(sgf==start) sgf = move(cbs,sgf);
+	if(sgf==start) sgf = add(cbs,sgf);
+	if(sgf==start) sgf = cr(cbs,sgf);
+	if(sgf==start) sgf = key(cbs,sgf);
+	if(sgf==start) sgf = unknown(cbs,sgf);
 
 	return sgf;
 }
 
-int sgf_init(const struct sgf_cb *cbs)
-{
-	cb = cbs;
-	return 0;
-}
-
-const char *sgf_parse_fast(const char *sgf)
+const char *sgf_parse_fast(const struct sgf_cb *cbs, const char *sgf)
 {
 	//printf("%s:%s\n",__FUNCTION__,sgf);
 	const char *tmp = 0;
 	while(sgf != tmp) {
 		sgf = whitespace(sgf);
 		tmp = sgf;
-		sgf = property(sgf);
+		sgf = property(cbs, sgf);
 	}
 	return sgf;
 }

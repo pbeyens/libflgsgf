@@ -32,7 +32,6 @@ struct sgf_cb {
 	void (*prop_unknown)(const char*, int s);
 };
 
-extern int sgf_init(const struct sgf_cb *cb);
-extern const char *sgf_parse_fast(const char *sgf);
+const char *sgf_parse_fast(const struct sgf_cb *cb, const char *sgf);
 
 #endif
