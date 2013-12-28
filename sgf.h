@@ -14,6 +14,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #define SGF_H
 
 struct sgf_cb {
+	/* sgf */
 	void (*node_new)(void);
 	void (*sz)(int);
 	void (*b)(char, char);
@@ -24,6 +25,10 @@ struct sgf_cb {
 	void (*pw)(const char*, int s);
 	void (*pb)(const char*, int s);
 	void (*cr)(char, char);
+
+	/* flgoban extensions */
+	void (*key)(char);
+
 	void (*prop_unknown)(const char*, int s);
 };
 

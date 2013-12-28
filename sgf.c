@@ -245,6 +245,31 @@ static const char *cr(const char *sgf)
 	return sgf;
 }
 
+static const char *key(const char *sgf)
+{
+	char k;
+	if(!cb->key)
+		return sgf;
+	//printf("%s:%s\n",__FUNCTION__,sgf);
+	const char *start = sgf;
+	if(strncmp("KEY",sgf,3))
+		return sgf;
+	sgf += 3;
+	sgf = whitespace(sgf);
+	if(*sgf != '[')
+		return start;
+	++sgf;
+
+	k = *sgf;
+	++sgf;
+
+	if(*sgf != ']')
+		return start;
+	++sgf;
+	cb->key(k);
+	return sgf;
+}
+
 static const char *unknown(const char *sgf)
 {
 	//printf("%s:%s\n",__FUNCTION__,sgf);
@@ -283,6 +308,7 @@ static const char *property(const char *sgf)
 	if(sgf==start) sgf = move(sgf);
 	if(sgf==start) sgf = add(sgf);
 	if(sgf==start) sgf = cr(sgf);
+	if(sgf==start) sgf = key(sgf);
 	if(sgf==start) sgf = unknown(sgf);
 
 	return sgf;
