@@ -1,4 +1,4 @@
-CXX      = g++
+CXX      = gcc
 DEBUG    = -g
 CXXFLAGS = -Werror -Wall -I.
 LDFLAGS  = -shared

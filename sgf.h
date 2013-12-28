@@ -13,6 +13,10 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #ifndef SGF_H
 #define SGF_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct sgf_cb {
 	/* sgf */
 	void (*node_new)(void);
@@ -33,5 +37,9 @@ struct sgf_cb {
 };
 
 const char *sgf_parse_fast(const struct sgf_cb *cb, const char *sgf);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
